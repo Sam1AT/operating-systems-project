@@ -1,5 +1,5 @@
-#ifndef BUFFER_H_INCLUDED
-#define BUFFER_H_INCLUDED
+#ifndef BUFFER
+#define BUFFER
 
 typedef int buffer_item;
 #define BUFFER_SIZE 5

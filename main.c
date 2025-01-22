@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include <pthread.h>
 
@@ -27,29 +27,22 @@ int main(int argc, char *argv[]) {
 
     pthread_t *consumers = (pthread_t *)malloc(numConsumer * sizeof(pthread_t));
     int *consumer_id = (int *)malloc(numConsumer * sizeof(pthread_t));
-    for(size_t i = 0; i != numConsumer; ++i) {
+    for(int i = 0; i != numConsumer; ++i) {
         consumer_id[i] = i + 1;
         pthread_create(&consumers[i], NULL, consumer, &consumer_id[i]);
     }
 
     sleep(sleepSecond);
-    for(size_t i = 0; i != numProducer; ++i) {
+    for(int i = 0; i != numProducer; ++i) {
         pthread_cancel(producers[i]);
         pthread_join(producers[i], NULL);
     }
 
     sleep(sleepSecond);   
-    for(size_t i = 0; i != numConsumer; ++i) {
+    for(int i = 0; i != numConsumer; ++i) {
         pthread_cancel(consumers[i]);
         pthread_join(consumers[i], NULL);
     }
-
-
-
-    free(producers);
-    free(producer_id);
-    free(consumers);
-    free(consumer_id);
 
     sem_close(full);
     sem_unlink("/full_semaphore");

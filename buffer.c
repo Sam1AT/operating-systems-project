@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include <semaphore.h>
 #include <pthread.h>
@@ -17,27 +17,35 @@ sem_t *empty = NULL;
 pthread_mutex_t lock;
 
 int insert_item(buffer_item item) {
-    sem_wait(empty);
-    pthread_mutex_lock(&lock);
+    if (sem_wait(empty) != 0 || pthread_mutex_lock(&lock) != 0) {
+        printf("Error: sem_wait or mutex lock goes wrong!");
+        return -1;  
+    }
 
     buffer[tail] = item;
     tail = (tail + 1) % (BUFFER_SIZE);
 
-    pthread_mutex_unlock(&lock);
-    sem_post(full);
+    if (sem_post(full) != 0 || pthread_mutex_unlock(&lock) != 0) {
+        printf("Error: sem_post or mutex unlock goes wrong!");
+        return -1;  
+    }
 
     return 0;
 }
 
 int remove_item(buffer_item *item) {
-    sem_wait(full);
-    pthread_mutex_lock(&lock);
+    if (sem_wait(full) != 0 || pthread_mutex_lock(&lock) != 0) {
+        printf("Error: sem_wait or mutex lock goes wrong!");
+        return -1;  
+    }
 
     *item = buffer[head];
     head = (head + 1) % (BUFFER_SIZE);
 
-    pthread_mutex_unlock(&lock);
-    sem_post(empty);
+    if (sem_post(empty) != 0 || pthread_mutex_unlock(&lock) != 0) {
+        printf("Error: sem_post or mutex unlock goes wrong!");
+        return -1;  
+    }
 
     return 0;
 }
@@ -48,8 +56,9 @@ void *producer(void *value) {
         sleep(rand() % MAX_SLEEP + 1);
         item = rand();
         if (insert_item(item)) {
-            fprintf(stderr, "Failed Inserting.\n");
-        } else {
+            printf("Failed Inserting.\n");
+        } 
+        else {
             printf("Producer Number %i produced %d.\n", *(int *)value, item);
         }
     }
@@ -61,8 +70,9 @@ void *consumer(void *value) {
     while (1) {
         sleep(rand() % MAX_SLEEP + 1);
         if (remove_item(&item)) {
-            fprintf(stderr, "Failed Removing.\n");
-        } else {
+            printf("Failed Consuming.\n");
+        } 
+        else {
             printf("Producer Number %i consumed %d.\n", *(int *)value, item);
         }
     }
